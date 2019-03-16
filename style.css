@@ -1,0 +1,24 @@
+body {
+  background: #224;
+}
+
+#board {
+  position: absolute;
+  left: 2.5vw;
+  top: 2.5vh;
+  width: 95vw;
+  height: 95vh;
+  border: 40px solid #eed;
+  border-radius: 10px;
+  box-sizing: border-box;
+  background: #eed;
+}
+
+#board img {
+  position: absolute;
+  border-radius: 10px;
+  margin-top: -37.5px;
+  margin-left: -37.5px;
+  transition-property: top left;
+  transition-duration: 5s;
+}

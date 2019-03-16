@@ -10,7 +10,7 @@ function search(str, cb) {
 
 function load(p) {
   var i = document.createElement('img');
-  i.setAttribute('src', thumb(p, 's'));
+  i.setAttribute('src', thumb(p, '_s'));
   position(i, [Math.random(), Math.random()]);
   i.style.opacity = '0.2';
   board.appendChild(i);
@@ -22,25 +22,60 @@ function load(p) {
 let basil = '/embed/images/generic/default'
 
 function encodeimage(u, cb) {
-  fetch(u, {mode: 'no-cors'}).then(r => r.text().then(t => cb(btoa(t))));
+  fetch(u, {mode: 'no-cors'}).then(r => r.blob().then(b => blob2b64(b, cb)));
+}
+
+function blob2b64(b, cb) {
+  r = new FileReader();
+  // data:*/*;base64,BASE/64==
+  r.onload = e => cb(e.target.result.split(',')[1]);
+  d = r.readAsDataURL(b);
 }
 
 function loaddata(p) {
-  encodeimage(thumb(p,'-'), image => {
+  encodeimage(thumb(p,''), image => {
     fetch(basil, {
       method: 'POST',
       headers: {
-        Authorization: 'Basic ' + btoa('c5a67cf3-e490-6bf0-053d-09c26063cd3c:')
+        Authorization: 'Basic ' + btoa('c5a67cf3-e490-6bf0-053d-09c26063cd3c:'),
+        "content-type": "application/json"
+        //Authorization: 'Basic ' + btoa('SLOW_DEMO_KEY:')
       },
       body: JSON.stringify({
-        dimensions: 4,
-        data: [image] })}).then(
-        r => savedata(p, r.json()));
+        // dimensions: 4,
+        data: [{img: image}] })}).then(
+        r => r.json().then(d => savedata(p, d)));
   });
 }
 
 function savedata(p, d) {
-  console.log(d);
+  p.view.style.opacity = 1;
+  p.data = d;
+  repositionall();
+}
+
+let lasttime = new Date();
+let waiting = false;
+function repositionall(force) {
+  if (waiting && !force) {
+    return;
+  }
+  let now = new Date();
+  if (now - lasttime < 500) {
+    waiting = true;
+    setTimeout(() => repositionall(true), 100);
+    return;
+  }
+  waiting = false;
+  
+  let data = [];
+  for (p of photos) {
+    data.push(p.data);
+  }
+  let a = new PCA(data);
+  console.log(a.predict(data));
+  console.log(a.getExplainedVariance());
+  console.log(a.getExplainedVariance());
 }
 
 function position(i, p) {
@@ -49,12 +84,11 @@ function position(i, p) {
 }
 
 function thumb(p,t) {
-  return `https://farm${p.farm}.staticflickr.com/${p.server}/${p.id}_${p.secret}_${t}.jpg`;
+  return `/flickr/farm${p.farm}/${p.server}/${p.id}_${p.secret}${t}.jpg`;
 }
 
-search('moustache', r => {
-  for (p of r.photos.photo) {
+search(window.location.hash.substring(1), r => {
+  for (p of r.photos.photo.slice(0,5)) {
     load(p);
-    break;
   }
 });

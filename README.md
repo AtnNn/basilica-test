@@ -2,9 +2,9 @@
 
 Built to test the https://basilica.ai API.
 
-Searches for words and Flickr and classifies the top photos.
+Searches for words on Flickr and classifies the top photos.
 
-For example, books, tractors and suns:
+For example: books, tractors and suns:
 
 ![demo](demo.gif)
 

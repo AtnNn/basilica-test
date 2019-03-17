@@ -1,7 +1,5 @@
 var PCA = require('pca-js');
-var eml = require('emlapack');
-
-console.log('eml', eml);
+// var eml = require('emlapack');
 
 let url = 'https://api.flickr.com/services/rest/?format=json&nojsoncallback=1&api_key=a96d92128c3ae09f2f79141b1aac9637&method=flickr.photos.search&sort=relevance&text=';
 
@@ -10,14 +8,33 @@ let photos = [];
 let board = document.getElementById('board');
 
 function search(str, cb) {
-  fetch(url + encodeURIComponent(str)).then(r => r.json().then(cb));
+  fetch(url + encodeURIComponent(str)).then(r => r.json().then(r => cb(r.photos.photo.slice(0, 100))));
+}
+
+function searches(strs, cb) {
+  for (let s of strs) {
+    let f = cb;
+    cb = l => search(s, ll => f(l.concat(ll)));
+  }
+  cb([]);
+}
+
+function small(i, p) {
+  i.setAttribute('src', thumb(p, '_s'));
+}
+
+function big(i, p) {
+  i.parentNode.appendChild(i);
+  i.setAttribute('src', thumb(p, ''));
 }
 
 function load(p) {
   var i = document.createElement('img');
-  i.setAttribute('src', thumb(p, '_s'));
+  small(i, p);
   position(i, [Math.random(), Math.random()]);
   i.style.opacity = '0.2';
+  i.onmousedown = () => big(i, p);
+  i.onmouseup = () => small(i, p);
   board.appendChild(i);
   p.view = i;
   photos.push(p);
@@ -47,14 +64,13 @@ function loaddata(p) {
         //Authorization: 'Basic ' + btoa('SLOW_DEMO_KEY:')
       },
       body: JSON.stringify({
-        // dimensions: 4,
+        dimensions: 100, 
         data: [{img: image}] })}).then(
         r => r.json().then(d => savedata(p, d)));
   });
 }
 
 function savedata(p, d) {
-	console.log('data', d);
   p.view.style.opacity = 0.5;
   p.data = d.embeddings[0];
   repositionall();
@@ -67,13 +83,12 @@ function repositionall(force) {
     return;
   }
   let now = new Date();
-  if (now - lasttime < 500) {
+  if (now - lasttime < 2000) {
     waiting = true;
-    setTimeout(() => repositionall(true), 100);
+    setTimeout(() => repositionall(true), 1000);
     return;
   }
   waiting = false;
-  lasttime = now;
   
   let data = [];
   let ix = [];
@@ -86,27 +101,32 @@ function repositionall(force) {
   if (ix.length <= 3) {
     return;
   }
-	console.log('matrix', data);
+
+  lasttime = now;
   let ev = PCA.getEigenVectors(data);
-	console.log('ev', ev);
-  let one = PCA.computeAdjustedData(data, ev[0]);
-  let two = PCA.computeAdjustedData(data, ev[1]);
+  let one = PCA.computeAdjustedData(data, ev[0]).adjustedData[0];
+  let two = PCA.computeAdjustedData(data, ev[1]).adjustedData[0];
   let ps = [];
-  let oscale = 0;
-  let tscale = 0;
+  let omin = 99999;
+  let omax = -99999;
+  let tmin = 99999;
+  let tmax = -99999;
   for (i in one) {
     ps.push([one[i], two[i]]);
-    oscale = Math.max(Math.abs(one[i]), oscale);
-    tscale = Math.max(Math.abs(two[i]), tscale);
+    omin = Math.min(omin, one[i]);
+    omax = Math.max(omax, one[i]);
+    tmin = Math.min(tmin, two[i]);
+    tmax = Math.max(tmax, two[i]);
   }
+  let oscale = omax - omin;
+  let tscale = tmax - tmin;
   for (i in ps) {
     photos[ix[i]].view.style.opacity = 1;
-    position(photos[ix[i]].view, [ps[i][0]/oscale, ps[i][1]/tscale]);
+    position(photos[ix[i]].view, [(ps[i][0]-omin)/oscale, (ps[i][1]-tmin)/tscale]);
   }
 }
 
 function position(i, p) {
-	console.log(p);
   i.style.left=(p[0] * 100) + '%';
   i.style.top=(p[1] * 100) + '%';
 }
@@ -115,8 +135,8 @@ function thumb(p,t) {
   return `/flickr/farm${p.farm}/${p.server}/${p.id}_${p.secret}${t}.jpg`;
 }
 
-search(window.location.hash.substring(1), r => {
-  for (p of r.photos.photo.slice(0,5)) {
+searches(window.location.hash.substring(1).split(','), r => {
+  for (p of r) {
     load(p);
   }
 });

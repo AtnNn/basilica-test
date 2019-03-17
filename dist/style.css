@@ -17,8 +17,9 @@ body {
 #board img {
   position: absolute;
   border-radius: 10px;
-  margin-top: -37.5px;
-  margin-left: -37.5px;
+  #margin-top: -37.5px;
+  #margin-left: -37.5px;
   transition-property: top left;
   transition-duration: 5s;
+  transform: translateY(-50%) translateX(-50%);
 }

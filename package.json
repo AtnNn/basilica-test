@@ -4,9 +4,19 @@
   "description": "",
   "private": true,
   "dependencies": {
-    "ml-pca": "^2.1.0"
+    "@webpack-cli/init": "^0.1.5",
+    "emlapack": "0.0.3",
+    "ml-pca": "^2.1.0",
+    "pca-js": "^1.0.2"
   },
   "devDependencies": {
+    "@babel/core": "^7.3.4",
+    "@babel/preset-env": "^7.3.4",
+    "babel-loader": "^8.0.5",
+    "babel-plugin-syntax-dynamic-import": "^6.18.0",
+    "css-loader": "^2.1.1",
+    "style-loader": "^0.23.1",
+    "uglifyjs-webpack-plugin": "^2.1.2",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0"
   },

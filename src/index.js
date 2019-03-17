@@ -1,3 +1,8 @@
+var PCA = require('pca-js');
+var eml = require('emlapack');
+
+console.log('eml', eml);
+
 let url = 'https://api.flickr.com/services/rest/?format=json&nojsoncallback=1&api_key=a96d92128c3ae09f2f79141b1aac9637&method=flickr.photos.search&sort=relevance&text=';
 
 let photos = [];
@@ -49,8 +54,9 @@ function loaddata(p) {
 }
 
 function savedata(p, d) {
-  p.view.style.opacity = 1;
-  p.data = d;
+	console.log('data', d);
+  p.view.style.opacity = 0.5;
+  p.data = d.embeddings[0];
   repositionall();
 }
 
@@ -67,18 +73,40 @@ function repositionall(force) {
     return;
   }
   waiting = false;
+  lasttime = now;
   
   let data = [];
-  for (p of photos) {
-    data.push(p.data);
+  let ix = [];
+  for (i in photos) {
+    if(photos[i].data) {
+      data.push(photos[i].data);
+      ix.push(i);
+    }
   }
-  let a = new PCA(data);
-  console.log(a.predict(data));
-  console.log(a.getExplainedVariance());
-  console.log(a.getExplainedVariance());
+  if (ix.length <= 3) {
+    return;
+  }
+	console.log('matrix', data);
+  let ev = PCA.getEigenVectors(data);
+	console.log('ev', ev);
+  let one = PCA.computeAdjustedData(data, ev[0]);
+  let two = PCA.computeAdjustedData(data, ev[1]);
+  let ps = [];
+  let oscale = 0;
+  let tscale = 0;
+  for (i in one) {
+    ps.push([one[i], two[i]]);
+    oscale = Math.max(Math.abs(one[i]), oscale);
+    tscale = Math.max(Math.abs(two[i]), tscale);
+  }
+  for (i in ps) {
+    photos[ix[i]].view.style.opacity = 1;
+    position(photos[ix[i]].view, [ps[i][0]/oscale, ps[i][1]/tscale]);
+  }
 }
 
 function position(i, p) {
+	console.log(p);
   i.style.left=(p[0] * 100) + '%';
   i.style.top=(p[1] * 100) + '%';
 }

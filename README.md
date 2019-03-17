@@ -14,6 +14,6 @@ For example: books, tractors and suns:
 npm install
 npx webpack
 # edit nginx configuration to point to correct `dist' and `logs' folder
-nginx -p .
+nginx -p nginx
 start http://localhost:4000/#planes,trains,automobiles
 ```

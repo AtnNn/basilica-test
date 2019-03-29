@@ -13,10 +13,8 @@ function search(str, cb) {
 
 function searches(strs, cb) {
   for (let s of strs) {
-    let f = cb;
-    cb = l => search(s, ll => f(l.concat(ll)));
+    search(s, cb);
   }
-  cb([]);
 }
 
 function small(i, p) {
@@ -135,8 +133,9 @@ function thumb(p,t) {
   return `/flickr/farm${p.farm}/${p.server}/${p.id}_${p.secret}${t}.jpg`;
 }
 
-searches(window.location.hash.substring(1).split(','), r => {
-  for (p of r) {
+let keywords = window.location.hash.substring(1).split(',');
+searches(keywords, r => {
+  for (p of r.slice(0, 48/keywords.length)) {
     load(p);
   }
 });

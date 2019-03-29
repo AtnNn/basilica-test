@@ -2,9 +2,9 @@
 
 Built to test the https://basilica.ai API.
 
-Searches for words and Flickr and classifies the top photos.
+Searches for words on Flickr and classifies the top photos.
 
-For example, books, tractors and suns:
+For example: books, tractors and suns:
 
 ![demo](demo.gif)
 
@@ -14,6 +14,6 @@ For example, books, tractors and suns:
 npm install
 npx webpack
 # edit nginx configuration to point to correct `dist' and `logs' folder
-nginx -p .
+nginx -p nginx
 start http://localhost:4000/#planes,trains,automobiles
 ```
